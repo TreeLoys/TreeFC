@@ -1,0 +1,3 @@
+[submodule "qtviewer"]
+	path = qtviewer
+	url = https://github.com/TreeLoys/qtviewer.git
