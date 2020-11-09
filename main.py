@@ -4,6 +4,7 @@
 
 from flask import Flask, render_template, jsonify
 from qtviewer import flaskrun
+import explorer
 
 app = Flask(__name__)
 
@@ -15,10 +16,15 @@ def main():
 
 @app.route("/gets-disk")
 def getDisk():
-    response = jsonify([{"text":"C:"}])
+    te = explorer.TreeExplore()
+    response = jsonify(te.generateObjectForJsonify())
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
+@app.route("/clickOnNode")
+def clickOnNode():
+    # TODO реализовать данный метод, чтобы можно было по дереву перемещаться
+    pass
 
 if __name__ == "__main__":
     "Create the main window"
