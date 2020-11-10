@@ -5,7 +5,7 @@
         <div class="w3-col s4  w3-center w3-white">
             <div class="head-folder">ПАПКА 1</div>
             <hr style="margin: 0">
-            <p><v-jstree :data="data" show-checkbox multiple allow-batch whole-row @item-click="itemClick"></v-jstree></p>
+            <p><v-jstree :data="data" :async="loadData" show-checkbox multiple allow-batch whole-row  ref="tree2"></v-jstree></p>
         </div>
         <div class="w3-col s4 w3-center">
             <div class="w3-card w3-white central-folder">
@@ -29,21 +29,27 @@
             VJstree
         },
         created() {
-            axios.get("http://localhost:5050/gets-disk").then((data)=>{
-                console.log(data.data)
-                this.data = data.data
-            })
+            axios.defaults.headers.post['Access-Control-Allow-Origin'] = '*';
+        },
+        mounted() {
         },
         data() {
             return {
-                data: [{"text": "Unknown"}]
+                data: [],
+                loadData: function (oriNode, resolve) {
+                    if (oriNode.data.id === undefined){
+                        axios.get("http://localhost:5050/gets-disk").then((data)=>{
+                            resolve(data.data)
+                        })
+                    }else{
+                        console.log(oriNode, "oriNodeClicked")
+                        axios.post("http://localhost:5050/click-browse", {fullpath: oriNode.data.fullpath}).then((data)=>{
+                            resolve(data.data)
+                        })
+                    }
+                }
             }
-        },
-        methods: {
-            itemClick (node) {
-              console.log(node.model.text + ' clicked !')
-            }
-      }
+        }
     }
 
 </script>

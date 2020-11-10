@@ -1,5 +1,7 @@
 import click
 import psutil
+import os
+
 """
 Основной смысл чтобы можно было потом в пикл захреначить и использовать в качестве кэша
 """
@@ -22,13 +24,14 @@ class Node(object):
     """
     This is a fileobject node. Laizy
     """
+
     def __init__(self, path):
         self.path = path
-        self.iconPath = ""
-        self.children = []
+        self.basename = self.path.split(os.sep)[-1] if len(self.path.split(os.sep)[-1]) else self.path.split(os.sep)[-2]
+        self.children = {}
         self.parrent = None
         self.type = None
-        self.infoDict = {}
+        self.parameters = {}
 
         # loadParams()
 
@@ -40,30 +43,52 @@ class Node(object):
 
     def appendChild(self, node):
         """Add the children in current node"""
-        self.children.append(node)
+        self.children[node.basename] = node
 
     def getObjectforJsonify(self):
         return {
-            "text": self.path,
-            "children": [x.getObjectforJsonify() for x in self.children]
+            "text": self.basename,
+            # "children": [self.children[x].getObjectforJsonify() for x in self.children],
+            "fullpath": self.path,
+            "isLeaf": False # раскрывающийся список - False
         }
 
 
 class TreeExplore(object):
     def __init__(self):
-        self.generalNodeList = []
+        self.generalNodeDict = {}
         self.loadAvaliableDisk()
 
     def loadAvaliableDisk(self):
         """This is a multiplatform get disk function"""
         for d in psutil.disk_partitions():
-            self.generalNodeList.append(Node(d.device))
-
-    def getFileobjects(self):
-        pass
+            node = Node(d.device)
+            self.generalNodeDict[node.basename] = node
 
     def generateObjectForJsonify(self):
-        return [x.getObjectforJsonify() for x in self.generalNodeList]
+        return [self.generalNodeDict[key].getObjectforJsonify() for key in self.generalNodeDict]
+
+    def getNodeByPath(self, path):
+        generalNodeNameList = path.split(os.sep)
+        node = self.generalNodeDict[generalNodeNameList[0]]
+        for path in generalNodeNameList[1:]:
+            if len(path) == 0:
+                continue
+            node = node.children[path]
+        return node
+
+    def click(self, fullpath):
+        lastNode = self.getNodeByPath(fullpath)
+        returnedInNode = []
+        for p in os.listdir(fullpath):
+            nextNodePath = os.path.join(fullpath, p)
+            nextNode = Node(nextNodePath)
+            # TODO coding it
+            nextNode.parameters["fileobject_type"] = ""
+
+            lastNode.appendChild(nextNode)
+            returnedInNode.append(nextNode.getObjectforJsonify())
+        return returnedInNode
 
 
 if __name__ == "__main__":

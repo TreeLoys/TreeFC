@@ -2,11 +2,14 @@
 # -*- coding: utf-8 -*-
 # Created by TreeLoys at 28.10.2020
 
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 from qtviewer import flaskrun
 import explorer
-
+from flask_cors import CORS
 app = Flask(__name__)
+CORS(app)
+
+te = explorer.TreeExplore()
 
 
 @app.route("/")
@@ -16,15 +19,17 @@ def main():
 
 @app.route("/gets-disk")
 def getDisk():
-    te = explorer.TreeExplore()
     response = jsonify(te.generateObjectForJsonify())
-    response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
-@app.route("/clickOnNode")
+@app.route("/click-browse", methods=["GET", "POST"])
 def clickOnNode():
     # TODO реализовать данный метод, чтобы можно было по дереву перемещаться
-    pass
+    data = request.get_json(force=True)
+    fullpath = data['fullpath']
+    print(fullpath, "Fullpath")
+    response = jsonify(te.click(fullpath))
+    return response
 
 if __name__ == "__main__":
     "Create the main window"
